@@ -1,14 +1,15 @@
 import ShapesToolbar, { ActiveTool } from "./ShapesToolbar.tsx";
-import { useEffect, useRef, useState } from "react";
+import { act, useEffect, useRef, useState } from "react";
 
 import ResetCanvasDialog from "./ResetCanvasDialog.tsx";
 import { TrashIcon } from "../icons.tsx";
 
 import "./App.scss";
-import { clearCanvas, drawRect } from "../utils/draw.ts";
+import { clearCanvas, drawRect, renderSelectionBorder } from "../utils/draw.ts";
 import { randomColor } from "../utils/colors.ts";
 import Scene from "../Scene.ts";
-import { generateElement } from "../element.ts";
+import { ElementType, generateElement } from "../element.ts";
+import { getHitElement } from "../utils/hitTest.ts";
 
 interface PointerDownState {
 	origin: {
@@ -16,6 +17,7 @@ interface PointerDownState {
 		y: number;
 	};
 	bgColor: string;
+	hitElement: ElementType | undefined;
 }
 
 const App = () => {
@@ -47,33 +49,23 @@ const App = () => {
 	};
 
 	console.log(activeTool, "Active tool");
-	const onClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
-		if (!canvasRef.current) {
+
+	const onPointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
+		console.log("on pointer down");
+		if (!sceneRef.current) {
 			return;
 		}
-		console.log(event, "Event");
-		if (activeTool === "rectangle") {
-			const bgColor = randomColor();
-			// Draw a rectangle
-			drawRect(
-				canvasRef.current,
-				event.clientX,
-				event.clientY,
-				100,
-				100,
-				bgColor
-			);
-		}
-	};
-	const onPointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
-		console.log("on pointer up");
+		const allElements = sceneRef.current.getAllElements();
+		const hitElement = getHitElement(event.clientX, event.clientY, allElements);
 		pointerDownStateRef.current = {
 			origin: {
 				x: event.clientX,
 				y: event.clientY,
 			},
 			bgColor: randomColor(),
+			hitElement,
 		};
+
 		document.addEventListener("pointermove", onPointerMove);
 		document.addEventListener("pointerup", onPointerUp);
 	};
@@ -106,22 +98,39 @@ const App = () => {
 		) {
 			return;
 		}
+
 		console.log("on pointer up");
-		const { origin, bgColor } = pointerDownStateRef.current;
-		const width = event.clientX - origin.x;
-		const height = event.clientY - origin.y;
-		const element = generateElement(
-			"rectangle",
-			origin.x,
-			origin.y,
-			width,
-			height,
-			bgColor
-		);
-		sceneRef.current.addElement(element);
-		console.log(sceneRef.current.getAllElements(), "Scene elements");
-		document.removeEventListener("pointermove", onPointerMove);
-		document.removeEventListener("pointerup", onPointerUp);
+
+		if (activeTool === "rectangle") {
+			const { origin, bgColor } = pointerDownStateRef.current;
+			const width = event.clientX - origin.x;
+			const height = event.clientY - origin.y;
+			const element = generateElement(
+				"rectangle",
+				origin.x,
+				origin.y,
+				width,
+				height,
+				bgColor
+			);
+			sceneRef.current.addElement(element);
+			console.log(sceneRef.current.getAllElements(), "Scene elements");
+			document.removeEventListener("pointermove", onPointerMove);
+			document.removeEventListener("pointerup", onPointerUp);
+			onToolChange("selection");
+		} else if (activeTool === "selection") {
+			if (!pointerDownStateRef.current) {
+				return;
+			}
+			const { hitElement } = pointerDownStateRef.current;
+
+			if (hitElement) {
+				renderSelectionBorder(canvasRef.current, hitElement);
+			} else {
+				clearCanvas(canvasRef.current);
+				sceneRef.current.redraw();
+			}
+		}
 	};
 
 	return (

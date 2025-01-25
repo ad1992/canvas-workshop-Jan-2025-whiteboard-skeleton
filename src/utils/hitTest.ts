@@ -7,11 +7,19 @@ import { ElementType } from "../element";
  * @param element - The element to check
  */
 export const isHittingElement = (
-  coordX: number,
-  coordY: number,
-  element: Element,
+	coordX: number,
+	coordY: number,
+	element: ElementType
 ) => {
-  // TODO: Implement this
+	if (
+		coordX >= element.x &&
+		coordX <= element.x + element.width &&
+		coordY >= element.y &&
+		coordY <= element.y + element.height
+	) {
+		return true;
+	}
+	return false;
 };
 
 /**
@@ -21,9 +29,10 @@ export const isHittingElement = (
  * @param elements - The elements to check
  */
 export const getHitElement = (
-  coordX: number,
-  coordY: number,
-  elements: Array<ElementType>,
+	coordX: number,
+	coordY: number,
+	elements: Array<ElementType>
 ) => {
-  // TODO: Implement this
+
+  return elements.find((element) => isHittingElement(coordX, coordY, element))
 };

@@ -8,6 +8,7 @@
  * @param bgColor - The background color of the rectangle
  */
 
+import { SELECTION_BORDER_PADDING, SELECTION_COLOR } from "../constants";
 import { ElementType } from "../element";
 
 export const drawRect = (
@@ -45,5 +46,10 @@ export const renderSelectionBorder = (
 	canvas: HTMLCanvasElement,
 	element: ElementType
 ) => {
-	// TODO: Implement this
+	const ctx = canvas.getContext("2d");
+	if (!ctx) {
+		return;
+	}
+	ctx.strokeStyle = SELECTION_COLOR;
+	ctx.strokeRect(element.x - SELECTION_BORDER_PADDING, element.y - SELECTION_BORDER_PADDING, element.width + SELECTION_BORDER_PADDING*2, element.height + SELECTION_BORDER_PADDING*2)
 };
