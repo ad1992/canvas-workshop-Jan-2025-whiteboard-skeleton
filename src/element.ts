@@ -24,7 +24,7 @@ export interface ElementType {
 
 // @TODO - I wish I could name it as createElement :(
 export const generateElement = (
-  type: string,
+  type: "rectangle",
   x: number,
   y: number,
   width: number,

@@ -1,4 +1,5 @@
 import { ElementType } from "./element";
+import { drawRect } from "./utils/draw";
 
 class Scene {
   private elements: Array<ElementType>;
@@ -25,6 +26,7 @@ class Scene {
   replaceElements(elements: Array<ElementType>) {
     this.elements = elements;
   }
+
   removeElement(id: string) {
     const index = this.elements.findIndex((element) => element.id === id);
     if (index === -1) {
@@ -60,7 +62,9 @@ class Scene {
    * Redraws the scene
    */
   redraw() {
-    // TODO: Implement this
+    this.elements.forEach((element) => {
+      drawRect(this.canvas, element.x, element.y, element.width, element.height, element.bgColor);
+    });
   }
 }
 
