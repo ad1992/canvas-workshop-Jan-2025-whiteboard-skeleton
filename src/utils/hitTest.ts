@@ -33,6 +33,7 @@ export const getHitElement = (
 	coordY: number,
 	elements: Array<ElementType>
 ) => {
-
-  return elements.find((element) => isHittingElement(coordX, coordY, element))
+	return elements
+		.reverse()
+		.find((element) => isHittingElement(coordX, coordY, element));
 };
