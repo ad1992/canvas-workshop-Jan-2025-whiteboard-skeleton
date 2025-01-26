@@ -88,6 +88,28 @@ const App = () => {
 			sceneRef.current.redraw(selectElementIdsRef.current);
 			console.log("DRAWING RECTANGLE");
 			drawRect(canvasRef.current, origin.x, origin.y, width, height, bgColor);
+		} else if (activeTool === "selection") {
+			if (selectElementIdsRef.current.length) {
+				//const selectedELementId = selectElementIdsRef.current[0];
+
+				// delta x and delta y
+				const { origin, hitElement } = pointerDownStateRef.current;
+				if (!hitElement) {
+					return;
+				}
+				const deltaX = event.clientX - origin.x;
+				const deltaY = event.clientY - origin.y;
+
+				// selection border is shown during movement
+				//selectElementIdsRef.current = [hitElement.id];
+				sceneRef.current.updateElement(hitElement.id, {
+					x: hitElement.x + deltaX,
+					y: hitElement.y + deltaY,
+				});
+
+				sceneRef.current.redraw(selectElementIdsRef.current);
+				// calculate the new top left for the element
+			}
 		}
 	};
 
