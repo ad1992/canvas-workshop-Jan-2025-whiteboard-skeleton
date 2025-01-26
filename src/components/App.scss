@@ -27,6 +27,7 @@
 			margin: 0 0.3rem;
 			border: none;
 			cursor: pointer;
+			z-index: 1000;
 		}
 
 		button {
@@ -36,8 +37,13 @@
 			border-radius: 0.4rem;
 		}
 	}
-
+	#drawing-canvas {
+		position: absolute;
+		top: 0;
+		left: 0;
+	}
 	canvas {
 		user-select: none;
+		touch-action: "none";
 	}
 }

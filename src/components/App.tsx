@@ -1,11 +1,11 @@
 import ShapesToolbar, { ActiveTool } from "./ShapesToolbar.tsx";
-import { act, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import ResetCanvasDialog from "./ResetCanvasDialog.tsx";
 import { TrashIcon } from "../icons.tsx";
 
 import "./App.scss";
-import { clearCanvas, drawRect, renderSelectionBorder } from "../utils/draw.ts";
+import { clearCanvas, drawRect } from "../utils/draw.ts";
 import { randomColor } from "../utils/colors.ts";
 import Scene from "../Scene.ts";
 import { ElementType, generateElement } from "../element.ts";
@@ -25,24 +25,26 @@ const App = () => {
 	const [activeTool, setActiveTool] = useState<ActiveTool>("selection");
 	const [showResetCanvasDialog, setshowResetCanvasDialog] = useState(false);
 
-	const canvasRef = useRef<HTMLCanvasElement | null>(null);
+	const drawingCanvasRef = useRef<HTMLCanvasElement | null>(null);
+	const bgCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
 	const wrapperRef = useRef<HTMLDivElement | null>(null);
 	const pointerDownStateRef = useRef<PointerDownState | null>(null);
 	const sceneRef = useRef<Scene | null>(null);
 	const selectElementIdsRef = useRef<Array<string>>([]);
 
 	useEffect(() => {
-		if (!canvasRef.current) return;
-		sceneRef.current = new Scene(canvasRef.current);
+		if (!bgCanvasRef.current) return;
+		sceneRef.current = new Scene(bgCanvasRef.current);
 	}, []);
 
 	const onToolChange = (tool: ActiveTool) => {
 		setActiveTool(tool);
 
 		if (tool === "rectangle") {
-			canvasRef.current?.style.setProperty("cursor", "crosshair");
+			drawingCanvasRef.current?.style.setProperty("cursor", "crosshair");
 		} else {
-			canvasRef.current?.style.setProperty("cursor", "default");
+			drawingCanvasRef.current?.style.setProperty("cursor", "default");
 		}
 	};
 
@@ -75,7 +77,7 @@ const App = () => {
 	const onPointerMove = (event: PointerEvent) => {
 		if (
 			!pointerDownStateRef.current ||
-			!canvasRef.current ||
+			!drawingCanvasRef.current ||
 			!sceneRef.current
 		) {
 			return;
@@ -85,9 +87,18 @@ const App = () => {
 			const { origin, bgColor } = pointerDownStateRef.current;
 			const width = event.clientX - origin.x;
 			const height = event.clientY - origin.y;
-			sceneRef.current.redraw(selectElementIdsRef.current);
 			console.log("DRAWING RECTANGLE");
-			drawRect(canvasRef.current, origin.x, origin.y, width, height, bgColor);
+
+			// Only drawing canvas should be cleared and redrawn when drawing.
+			clearCanvas(drawingCanvasRef.current);
+			drawRect(
+				drawingCanvasRef.current,
+				origin.x,
+				origin.y,
+				width,
+				height,
+				bgColor
+			);
 		} else if (activeTool === "selection") {
 			if (selectElementIdsRef.current.length) {
 				//const selectedELementId = selectElementIdsRef.current[0];
@@ -116,7 +127,7 @@ const App = () => {
 	const onPointerUp = (event: PointerEvent) => {
 		if (
 			!pointerDownStateRef.current ||
-			!canvasRef.current ||
+			!drawingCanvasRef.current ||
 			!sceneRef.current
 		) {
 			return;
@@ -132,7 +143,7 @@ const App = () => {
 				event.clientX,
 				event.clientY
 			);
-
+			clearCanvas(drawingCanvasRef.current);
 			const element = generateElement(
 				"rectangle",
 				x,
@@ -156,8 +167,9 @@ const App = () => {
 			} else {
 				selectElementIdsRef.current = [];
 			}
-			sceneRef.current.redraw(selectElementIdsRef.current);
 		}
+		sceneRef.current.redraw(selectElementIdsRef.current);
+
 		pointerDownStateRef.current = null;
 		document.removeEventListener("pointermove", onPointerMove);
 		document.removeEventListener("pointerup", onPointerUp);
@@ -177,13 +189,17 @@ const App = () => {
 					<ShapesToolbar onClick={onToolChange} activeTool={activeTool} />
 				</div>
 				<canvas
-					ref={canvasRef}
+					id="background-canvas"
+					ref={bgCanvasRef}
 					width={window.innerWidth}
 					height={window.innerHeight}
-					style={{
-						touchAction: "none",
-						display: "block",
-					}}
+					onPointerDown={onPointerDown}
+				></canvas>
+				<canvas
+					id="drawing-canvas"
+					ref={drawingCanvasRef}
+					width={window.innerWidth}
+					height={window.innerHeight}
 					onPointerDown={onPointerDown}
 				></canvas>
 			</div>
