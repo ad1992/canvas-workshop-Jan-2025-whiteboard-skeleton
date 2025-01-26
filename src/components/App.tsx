@@ -29,6 +29,7 @@ const App = () => {
 	const wrapperRef = useRef<HTMLDivElement | null>(null);
 	const pointerDownStateRef = useRef<PointerDownState | null>(null);
 	const sceneRef = useRef<Scene | null>(null);
+	const selectElementIdsRef = useRef<Array<string>>([]);
 
 	useEffect(() => {
 		if (!canvasRef.current) return;
@@ -84,8 +85,7 @@ const App = () => {
 			const { origin, bgColor } = pointerDownStateRef.current;
 			const width = event.clientX - origin.x;
 			const height = event.clientY - origin.y;
-			clearCanvas(canvasRef.current);
-			sceneRef.current.redraw();
+			sceneRef.current.redraw(selectElementIdsRef.current);
 			console.log("DRAWING RECTANGLE");
 			drawRect(canvasRef.current, origin.x, origin.y, width, height, bgColor);
 		}
@@ -130,11 +130,11 @@ const App = () => {
 			const { hitElement } = pointerDownStateRef.current;
 
 			if (hitElement) {
-				renderSelectionBorder(canvasRef.current, hitElement);
+				selectElementIdsRef.current = [hitElement.id];
 			} else {
-				clearCanvas(canvasRef.current);
-				sceneRef.current.redraw();
+				selectElementIdsRef.current = [];
 			}
+			sceneRef.current.redraw(selectElementIdsRef.current);
 		}
 		pointerDownStateRef.current = null;
 		document.removeEventListener("pointermove", onPointerMove);

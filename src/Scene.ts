@@ -1,5 +1,5 @@
 import { ElementType } from "./element";
-import { drawRect } from "./utils/draw";
+import { clearCanvas, drawRect, renderSelectionBorder } from "./utils/draw";
 
 class Scene {
   private elements: Array<ElementType>;
@@ -61,9 +61,13 @@ class Scene {
   /**
    * Redraws the scene
    */
-  redraw() {
+  redraw(selectedElementIds: Array<string>) {
+    clearCanvas(this.canvas)
     this.elements.forEach((element) => {
       drawRect(this.canvas, element.x, element.y, element.width, element.height, element.bgColor);
+      if (selectedElementIds.includes(element.id)) {
+        renderSelectionBorder(this.canvas, element);
+      }
     });
   }
 }
