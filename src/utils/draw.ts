@@ -32,9 +32,9 @@ export const drawRect = (
 export const clearCanvas = (canvas: HTMLCanvasElement) => {
 	// TODO: Implement this
 
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+	const ctx = canvas.getContext("2d");
+	if (!ctx) return;
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
 };
 
 /**
@@ -44,12 +44,19 @@ export const clearCanvas = (canvas: HTMLCanvasElement) => {
  */
 export const renderSelectionBorder = (
 	canvas: HTMLCanvasElement,
-	element: ElementType
+	element: ElementType,
+	clientX: number,
+	clientY: number
 ) => {
 	const ctx = canvas.getContext("2d");
 	if (!ctx) {
 		return;
 	}
 	ctx.strokeStyle = SELECTION_COLOR;
-	ctx.strokeRect(element.x - SELECTION_BORDER_PADDING, element.y - SELECTION_BORDER_PADDING, element.width + SELECTION_BORDER_PADDING*2, element.height + SELECTION_BORDER_PADDING*2)
+	ctx.strokeRect(
+		clientX - SELECTION_BORDER_PADDING,
+		clientY - SELECTION_BORDER_PADDING,
+		element.width + SELECTION_BORDER_PADDING * 2,
+		element.height + SELECTION_BORDER_PADDING * 2
+	);
 };

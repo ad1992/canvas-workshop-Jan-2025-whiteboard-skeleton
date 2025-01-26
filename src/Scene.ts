@@ -1,4 +1,5 @@
 import { ElementType } from "./element";
+import { sceneCoordsToViewportCoords } from "./utils/coords";
 import { clearCanvas, drawRect, renderSelectionBorder } from "./utils/draw";
 
 class Scene {
@@ -61,20 +62,28 @@ class Scene {
 	/**
 	 * Redraws the scene
 	 */
-	redraw(selectedElementIds: Array<string>) {
+	redraw(
+		selectedElementIds: Array<string>,
+		opts: { scrollX: number; scrollY: number }
+	) {
 		clearCanvas(this.canvas);
 		this.elements.forEach((element) => {
 			console.log("REDRAW");
-			drawRect(
-				this.canvas,
+			const { clientX, clientY } = sceneCoordsToViewportCoords(
 				element.x,
 				element.y,
+				opts
+			);
+			drawRect(
+				this.canvas,
+				clientX,
+				clientY,
 				element.width,
 				element.height,
 				element.bgColor
 			);
 			if (selectedElementIds.includes(element.id)) {
-				renderSelectionBorder(this.canvas, element);
+				renderSelectionBorder(this.canvas, element, clientX, clientY);
 			}
 		});
 	}

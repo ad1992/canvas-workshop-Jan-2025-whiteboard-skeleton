@@ -11,6 +11,7 @@ export const isHittingElement = (
 	coordY: number,
 	element: ElementType
 ) => {
+	// use view port coordinates instead of element.x element.y
 	if (
 		coordX >= element.x &&
 		coordX <= element.x + element.width &&

@@ -10,7 +10,10 @@ import { randomColor } from "../utils/colors.ts";
 import Scene from "../Scene.ts";
 import { ElementType, generateElement } from "../element.ts";
 import { getHitElement } from "../utils/hitTest.ts";
-import { getNormalizedRect } from "../utils/coords.ts";
+import {
+	getNormalizedRect,
+	viewportCoordsToSceneCoords,
+} from "../utils/coords.ts";
 
 interface PointerDownState {
 	origin: {
@@ -32,6 +35,11 @@ const App = () => {
 	const pointerDownStateRef = useRef<PointerDownState | null>(null);
 	const sceneRef = useRef<Scene | null>(null);
 	const selectElementIdsRef = useRef<Array<string>>([]);
+
+	const scrollRef = useRef<{ scrollX: number; scrollY: number }>({
+		scrollX: 0,
+		scrollY: 0,
+	});
 
 	useEffect(() => {
 		if (!bgCanvasRef.current) return;
@@ -69,7 +77,7 @@ const App = () => {
 			bgColor: randomColor(),
 			hitElement,
 		};
-
+		console.log("hit element", hitElement);
 		document.addEventListener("pointermove", onPointerMove);
 		document.addEventListener("pointerup", onPointerUp);
 	};
@@ -118,7 +126,7 @@ const App = () => {
 					y: hitElement.y + deltaY,
 				});
 
-				sceneRef.current.redraw(selectElementIdsRef.current);
+				sceneRef.current.redraw(selectElementIdsRef.current, scrollRef.current);
 				// calculate the new top left for the element
 			}
 		}
@@ -144,10 +152,16 @@ const App = () => {
 				event.clientY
 			);
 			clearCanvas(drawingCanvasRef.current);
-			const element = generateElement(
-				"rectangle",
+
+			const { sceneX, sceneY } = viewportCoordsToSceneCoords(
 				x,
 				y,
+				scrollRef.current
+			);
+			const element = generateElement(
+				"rectangle",
+				sceneX,
+				sceneY,
 				width,
 				height,
 				bgColor
@@ -168,11 +182,27 @@ const App = () => {
 				selectElementIdsRef.current = [];
 			}
 		}
-		sceneRef.current.redraw(selectElementIdsRef.current);
+		sceneRef.current.redraw(selectElementIdsRef.current, scrollRef.current);
 
 		pointerDownStateRef.current = null;
 		document.removeEventListener("pointermove", onPointerMove);
 		document.removeEventListener("pointerup", onPointerUp);
+	};
+
+	const onWheel = (event: React.WheelEvent<HTMLCanvasElement | null>) => {
+		if (!sceneRef.current) {
+			return;
+		}
+		console.log("WHEEL", "DELTAX = ", event.deltaX, "DELTA Y", event.deltaY);
+
+		const { deltaX, deltaY } = event;
+
+		scrollRef.current.scrollX -= deltaX;
+		scrollRef.current.scrollY -= deltaY;
+
+		sceneRef.current.redraw(selectElementIdsRef.current, scrollRef.current);
+
+		console.log(scrollRef.current);
 	};
 
 	return (
@@ -193,7 +223,6 @@ const App = () => {
 					ref={bgCanvasRef}
 					width={window.innerWidth}
 					height={window.innerHeight}
-					onPointerDown={onPointerDown}
 				></canvas>
 				<canvas
 					id="drawing-canvas"
@@ -201,6 +230,7 @@ const App = () => {
 					width={window.innerWidth}
 					height={window.innerHeight}
 					onPointerDown={onPointerDown}
+					onWheel={onWheel}
 				></canvas>
 			</div>
 			{showResetCanvasDialog && (

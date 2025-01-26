@@ -7,9 +7,11 @@
 export const viewportCoordsToSceneCoords = (
 	clientX: number,
 	clientY: number,
-	opts: { offsetX: number; offsetY: number }
+	opts: { scrollX: number; scrollY: number }
 ) => {
-	// TODO: Implement this
+	const sceneX = clientX - opts.scrollX;
+	const sceneY = clientY - opts.scrollY;
+	return { sceneX, sceneY };
 };
 
 /**
@@ -19,11 +21,13 @@ export const viewportCoordsToSceneCoords = (
  * @param opts - The options
  */
 export const sceneCoordsToViewportCoords = (
-	coordX: number,
-	coordY: number,
-	opts: { offsetX: number; offsetY: number }
+	sceneX: number,
+	sceneY: number,
+	opts: { scrollX: number; scrollY: number }
 ) => {
-	// TODO: Implement this
+	const clientX = sceneX + opts.scrollX;
+	const clientY = sceneY + opts.scrollY;
+	return { clientX, clientY };
 };
 
 /**
