@@ -101,7 +101,7 @@ const App = () => {
 				const deltaY = event.clientY - origin.y;
 
 				// selection border is shown during movement
-				//selectElementIdsRef.current = [hitElement.id];
+				selectElementIdsRef.current = [hitElement.id];
 				sceneRef.current.updateElement(hitElement.id, {
 					x: hitElement.x + deltaX,
 					y: hitElement.y + deltaY,
